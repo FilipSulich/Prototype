@@ -7,18 +7,18 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from model.model import SiameseCNN
-from data.dataset_db import TLESSDatasetDB
+from model import SiameseCNN
+from data.dataset import TLESSDataset
 
 
-def train_model(epochs=20, batch_size=16, lr=1e-4):
+def train_model(train_json='train_pairs.json', val_json='test_pairs.json', epochs=20, batch_size=16, lr=1e-4):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
     model = SiameseCNN(pretrained=True, freeze_backbone=True).to(device)
 
-    train_dataset = TLESSDatasetDB(split='train', crop_objects=True)
-    val_dataset = TLESSDatasetDB(split='test', crop_objects=True)
+    train_dataset = TLESSDataset(train_json, crop_objects=True)
+    val_dataset = TLESSDataset(val_json, crop_objects=True)
 
     print(f"Train samples: {len(train_dataset)}")
     print(f"Val samples: {len(val_dataset)}")

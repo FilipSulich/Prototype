@@ -40,7 +40,7 @@ def generate_image_pairs(dataset_path, output_json, same_object_only=True):
     object_folders = sorted([f for f in dataset_path.iterdir() if f.is_dir() and f.name.isdigit()])
     print(len(object_folders))
 
-    for obj_folder in object_folders[:1]:  # Only process first folder for testing
+    for obj_folder in object_folders:  # Only process first folder for testing
         obj_id = int(obj_folder.name)
         gt_path = obj_folder / 'gt.yml'
         rgb_dir = obj_folder / 'rgb'

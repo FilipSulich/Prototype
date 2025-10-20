@@ -33,8 +33,8 @@ dist/
 checkpoints/
 
 # Data
-data/raw/
-data/processed/
+data/
+*.json
 *.pkl
 *.pickle
 
