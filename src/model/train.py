@@ -1,3 +1,4 @@
+from model.model import SiameseCNN
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -7,21 +8,19 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from model import SiameseCNN
 from data.dataset import TLESSDataset
 
 
-def train_model(train_json='train_pairs.json', val_json='test_pairs.json', epochs=20, batch_size=16, lr=1e-4):
+def train_model(train_json='train_pairs.json', val_json='val_pairs.json', epochs=20, batch_size=16, lr=1e-4):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"Using device: {device}")
-
+    
     model = SiameseCNN(pretrained=True, freeze_backbone=True).to(device)
 
     train_dataset = TLESSDataset(train_json, crop_objects=True)
     val_dataset = TLESSDataset(val_json, crop_objects=True)
 
     print(f"Train samples: {len(train_dataset)}")
-    print(f"Val samples: {len(val_dataset)}")
+    print(f"Validation samples: {len(val_dataset)}")
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
@@ -38,7 +37,6 @@ def train_model(train_json='train_pairs.json', val_json='test_pairs.json', epoch
         train_loss = 0.0
         print(f"\n--- Epoch {epoch + 1}/{epochs} ---")
 
-        # tqdm for training batches
         train_loader_tqdm = tqdm(train_loader, desc="Training", leave=False)
         for ref_img, query_img, match_label, angle_diff in train_loader_tqdm:
             ref_img = ref_img.to(device)
@@ -87,10 +85,10 @@ def train_model(train_json='train_pairs.json', val_json='test_pairs.json', epoch
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             torch.save(model.state_dict(), 'checkpoints/best_model.pth')
-            print(f"Best model saved! (Val Loss: {best_val_loss:.4f})")
+            print(f"Best model saved (Val Loss: {best_val_loss:.4f})")
 
     torch.save(model.state_dict(), 'checkpoints/final_model.pth')
-    print("Training complete!")
+    print("training is complete")
 
     return model
 

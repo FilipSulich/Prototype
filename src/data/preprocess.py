@@ -1,7 +1,6 @@
 import yaml
 import numpy as np
 from scipy.spatial.transform import Rotation
-import os
 from pathlib import Path
 import json
 
@@ -15,13 +14,9 @@ def rotation_matrix_to_euler(R_flat):
 def calculate_angle_difference(R1_flat, R2_flat):
     R1 = np.array(R1_flat).reshape(3, 3)
     R2 = np.array(R2_flat).reshape(3, 3)
-
-    # Relative rotation
     R_relative = R2 @ R1.T
-
-    # Convert to angle-axis representation
     rotation = Rotation.from_matrix(R_relative)
-    angle = rotation.magnitude() * 180 / np.pi  # Convert to degrees
+    angle = rotation.magnitude() * 180 / np.pi  
 
     return angle
 
@@ -36,24 +31,18 @@ def generate_image_pairs(dataset_path, output_json, same_object_only=True):
     dataset_path = Path(dataset_path)
     pairs = []
 
-    # Iterate through object folders (01, 02, ..., 13)
     object_folders = sorted([f for f in dataset_path.iterdir() if f.is_dir() and f.name.isdigit()])
     print(len(object_folders))
 
-    for obj_folder in object_folders:  # Only process first folder for testing
-        obj_id = int(obj_folder.name)
+    for obj_folder in object_folders:  
         gt_path = obj_folder / 'gt.yml'
         rgb_dir = obj_folder / 'rgb'
-        print(gt_path)
 
         if not gt_path.exists():
-            print(f"Skipping {obj_folder.name}: gt.yml not found")
             continue
 
         gt_data = load_gt_data(gt_path)
-        print(gt_data.keys())
-
-        # Get all image IDs and their objects for this object folder
+    
         image_objects = {}
         for img_id, objects in gt_data.items():
             if objects is None:
@@ -63,7 +52,6 @@ def generate_image_pairs(dataset_path, output_json, same_object_only=True):
                     image_objects[img_id] = []
                 image_objects[img_id].append(obj)
 
-        # Generate pairs within this object folder
         image_ids = sorted(image_objects.keys())
 
         for i, ref_id in enumerate(image_ids):
@@ -74,24 +62,20 @@ def generate_image_pairs(dataset_path, output_json, same_object_only=True):
                 ref_rotation = ref_obj['cam_R_m2c']
                 ref_bbox = ref_obj['obj_bb']
 
-                # Create pairs with other images
                 for query_id in image_ids[i + 1:]:
                     query_objects = image_objects[query_id]
 
                     for query_obj in query_objects:
                         query_obj_id = query_obj['obj_id']
 
-                        # Only pair same objects if flag is set
                         if same_object_only and ref_obj_id != query_obj_id:
                             continue
 
                         query_rotation = query_obj['cam_R_m2c']
                         query_bbox = query_obj['obj_bb']
 
-                        # Calculate angle difference
                         angle_diff = calculate_angle_difference(ref_rotation, query_rotation)
 
-                        # Determine match label (within 5 degrees = match)
                         match_label = 1 if angle_diff <= 5.0 else 0
 
                         pair = {
@@ -106,7 +90,6 @@ def generate_image_pairs(dataset_path, output_json, same_object_only=True):
 
                         pairs.append(pair)
 
-    # Save to JSON
     with open(output_json, 'w') as f:
         json.dump(pairs, f, indent=2)
 
@@ -118,14 +101,27 @@ def generate_image_pairs(dataset_path, output_json, same_object_only=True):
 
 
 if __name__ == '__main__':
-    # Generate pairs from training data
-    train_pairs = generate_image_pairs(
+    all_train_pairs = generate_image_pairs(
         dataset_path='data/train',
-        output_json='train_pairs.json',
+        output_json='all_train_pairs.json',
         same_object_only=True
     )
 
-    # Generate pairs from test data
+    np.random.seed(42)
+    indices = np.random.permutation(len(all_train_pairs))
+    split_idx = int(0.75 * len(all_train_pairs))
+
+    train_pairs = [all_train_pairs[i] for i in indices[:split_idx]]
+    val_pairs = [all_train_pairs[i] for i in indices[split_idx:]]
+
+    with open('train_pairs.json', 'w') as f:
+        json.dump(train_pairs, f, indent=2)
+
+    with open('val_pairs.json', 'w') as f:
+        json.dump(val_pairs, f, indent=2)
+
+    print(f"\nTrain: {len(train_pairs)}, Val: {len(val_pairs)}")
+
     test_pairs = generate_image_pairs(
         dataset_path='data/test',
         output_json='test_pairs.json',
