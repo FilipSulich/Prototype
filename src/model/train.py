@@ -42,7 +42,7 @@ def train_model(train_json='train_pairs.json', val_json='val_pairs.json', epochs
             ref_img = ref_img.to(device)
             query_img = query_img.to(device)
             match_label = match_label.to(device).unsqueeze(1)
-            angle_diff = angle_diff.to(device).unsqueeze(1)
+            angle_diff = angle_diff.to(device).unsqueeze(1) / 180.0  # normalize angle difference
 
             optimizer.zero_grad()
 
@@ -66,7 +66,7 @@ def train_model(train_json='train_pairs.json', val_json='val_pairs.json', epochs
                 ref_img = ref_img.to(device)
                 query_img = query_img.to(device)
                 match_label = match_label.to(device).unsqueeze(1)
-                angle_diff = angle_diff.to(device).unsqueeze(1)
+                angle_diff = angle_diff.to(device).unsqueeze(1) / 180.0  # normalize angle difference
 
                 similarity, pred_angle = model(ref_img, query_img)
 
@@ -84,7 +84,11 @@ def train_model(train_json='train_pairs.json', val_json='val_pairs.json', epochs
 
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
-            torch.save(model.state_dict(), 'checkpoints/best_model.pth')
+            torch.save({
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'epoch': epoch
+            }, 'checkpoints/best_checkpoint.pth')
             print(f"Best model saved (Val Loss: {best_val_loss:.4f})")
 
     torch.save(model.state_dict(), 'checkpoints/final_model.pth')

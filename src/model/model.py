@@ -25,7 +25,8 @@ class SiameseCNN(nn.Module):
             nn.Linear(512 * 2, 256), # input size is 512*2 due to concatenation of two feature vectors
             nn.ReLU(), 
             nn.Dropout(0.3), # dropout to prevent overfitting
-            nn.Linear(256, 1) # output is a single value representing the angle difference
+            nn.Linear(256, 1), 
+            nn.Tanh() # output between -1 and 1 for angle difference (normalized for more stable training)
         )
 
     def forward_once(self, x):
@@ -39,6 +40,6 @@ class SiameseCNN(nn.Module):
         combined = torch.cat([feat1, feat2], dim=1) # concatenation of the two vectors (512 *2 = 1024 dimensions)
 
         similarity = self.fc_similarity(combined) # similarity score between 0 and 1
-        angle_diff = self.fc_angle(combined) # predicted angle difference
+        angle_diff = self.fc_angle(combined) * 180.0 # predicted angle difference (we scale it back to degrees)
 
         return similarity, angle_diff
