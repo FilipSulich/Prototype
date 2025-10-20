@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-py"
+  recursive_type_depth = -1
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core models for storing images and metadata
+model Image {
+  id          Int      @id @default(autoincrement())
+  sceneId     Int      @map("scene_id")                    // e.g., 01, 02
+  split       String                                        // "train" or "test"
+  frameNumber Int      @map("frame_number")                // e.g., 0000, 0001
+
+  // Store actual image binary data as bytes (optional - images can be stored locally)
+  imageData   Bytes?   @map("image_data")                  // PNG/JPG binary data
+
+  // Optional: store image metadata for quick lookups without loading bytes
+  width       Int?
+  height      Int?
+  format      String?                                       // "png", "jpg"
+  fileSize    Int?     @map("file_size")                   // in bytes
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  refPairs    ImagePair[] @relation("RefImage")
+  queryPairs  ImagePair[] @relation("QueryImage")
+  annotations ImageAnnotation[]
+
+  @@unique([sceneId, split, frameNumber])
+  @@index([sceneId, split])
+  @@map("images")
+}
+
+// Stores ground truth annotations from gt.yml
+model ImageAnnotation {
+  id           Int      @id @default(autoincrement())
+  imageId      Int      @map("image_id")
+  objectId     Int      @map("object_id")                  // T-LESS object ID
+
+  // Bounding box [x, y, width, height]
+  bboxX        Int      @map("bbox_x")
+  bboxY        Int      @map("bbox_y")
+  bboxWidth    Int      @map("bbox_width")
+  bboxHeight   Int      @map("bbox_height")
+
+  // Camera rotation matrix (model to camera) - 9 values stored as array
+  camRm2c      Float[]  @map("cam_r_m2c")
+
+  // Camera translation vector - 3 values [x, y, z]
+  camTm2c      Float[]  @map("cam_t_m2c")
+
+  createdAt    DateTime @default(now())
+
+  image        Image    @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@index([imageId])
+  @@index([objectId])
+  @@map("image_annotations")
+}
+
+// Stores the training/test pairs (from train_pairs.json and test_pairs.json)
+model ImagePair {
+  id                Int      @id @default(autoincrement())
+
+  // Reference image and bbox
+  refImageId        Int      @map("ref_image_id")
+  refBboxX          Int      @map("ref_bbox_x")
+  refBboxY          Int      @map("ref_bbox_y")
+  refBboxWidth      Int      @map("ref_bbox_width")
+  refBboxHeight     Int      @map("ref_bbox_height")
+
+  // Query image and bbox
+  queryImageId      Int      @map("query_image_id")
+  queryBboxX        Int      @map("query_bbox_x")
+  queryBboxY        Int      @map("query_bbox_y")
+  queryBboxWidth    Int      @map("query_bbox_width")
+  queryBboxHeight   Int      @map("query_bbox_height")
+
+  // Labels
+  angleDifference   Float    @map("angle_difference")      // Angular difference in degrees
+  matchLabel        Int      @map("match_label")           // 0 or 1 (negative/positive pair)
+  objectId          Int      @map("object_id")             // T-LESS object ID
+
+  split             String                                  // "train" or "test"
+
+  createdAt         DateTime @default(now())
+
+  // Relations
+  refImage          Image    @relation("RefImage", fields: [refImageId], references: [id], onDelete: Cascade)
+  queryImage        Image    @relation("QueryImage", fields: [queryImageId], references: [id], onDelete: Cascade)
+
+  @@index([split])
+  @@index([objectId])
+  @@index([matchLabel])
+  @@map("image_pairs")
+}
+
+// Store preprocessing/dataset metadata
+model Dataset {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique                         // e.g., "T-LESS"
+  version         String                                   // Dataset version
+  description     String?
+
+  totalImages     Int      @map("total_images")
+  totalPairs      Int      @map("total_pairs")
+  trainPairs      Int      @map("train_pairs")
+  testPairs       Int      @map("test_pairs")
+
+  preprocessedAt  DateTime @map("preprocessed_at")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("datasets")
+}
+
+// Track training runs and model performance
+model TrainingRun {
+  id                 Int      @id @default(autoincrement())
+  runName            String   @unique @map("run_name")
+
+  // Model configuration
+  modelArchitecture  String   @map("model_architecture")   // e.g., "ResNet50"
+  hyperparameters    Json                                  // Store as JSON
+
+  // Training metadata
+  totalEpochs        Int      @map("total_epochs")
+  finalTrainLoss     Float?   @map("final_train_loss")
+  finalValLoss       Float?   @map("final_val_loss")
+  bestValLoss        Float?   @map("best_val_loss")
+
+  // Metrics
+  finalMetrics       Json?    @map("final_metrics")        // JSON with all metrics
+
+  checkpointPath     String?  @map("checkpoint_path")
+
+  startedAt          DateTime @map("started_at")
+  completedAt        DateTime? @map("completed_at")
+  createdAt          DateTime @default(now())
+
+  @@map("training_runs")
+}
