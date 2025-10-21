@@ -13,11 +13,11 @@ import json
 sys.path.append(str(Path(__file__).parent.parent))
 
 class SiameseCNN(nn.Module):
-    def __init__(self, pretrained=True, freeze_backbone=True):
+    def __init__(self, freeze_backbone=True):
         super(SiameseCNN, self).__init__()
 
-        resnet = models.resnet18(pretrained=pretrained) # we use the ResNet18 pre-trained model as the backbone
-        
+        resnet = models.resnet18(weights='IMAGENET1K_V1') # we use the ResNet18 pre-trained model as the backbone
+        print(resnet)
         self.backbone = nn.Sequential(*list(resnet.children())[:-1]) # we use all the layers from ResNet18 except the final fully connected layer - we only need the feature extractor
 
         if freeze_backbone:
