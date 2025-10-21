@@ -123,7 +123,6 @@ def split_by_images(all_pairs, train_ratio=0.75, random_seed=42):
     all_images = list(all_images)
     print(f"\nTotal unique images: {len(all_images)}")
     
-    # Step 2: Shuffle and split images
     np.random.shuffle(all_images)
     split_idx = int(train_ratio * len(all_images))
     
@@ -133,12 +132,10 @@ def split_by_images(all_pairs, train_ratio=0.75, random_seed=42):
     print(f"Train images: {len(train_images)}")
     print(f"Val images: {len(val_images)}")
     
-    # Step 3: Verify no overlap (should be 0)
     overlap = train_images.intersection(val_images)
     print(f"Image overlap: {len(overlap)} (should be 0)")
     assert len(overlap) == 0, "ERROR: Images overlap between train and val!"
     
-    # Step 4: Filter pairs - BOTH images must be in same split
     train_pairs = []
     val_pairs = []
     
@@ -150,18 +147,11 @@ def split_by_images(all_pairs, train_ratio=0.75, random_seed=42):
             train_pairs.append(pair)
         elif ref_img in val_images and query_img in val_images:
             val_pairs.append(pair)
-        # If one image is in train and other in val, discard the pair
     
     print(f"\nAfter filtering:")
     print(f"Train pairs: {len(train_pairs)}")
     print(f"Val pairs: {len(val_pairs)}")
     print(f"Discarded pairs: {len(all_pairs) - len(train_pairs) - len(val_pairs)}")
-    
-    # Step 5: Verify statistics
-    print(f"\nTrain - Positive: {sum(1 for p in train_pairs if p['match_label'] == 1)}, "
-          f"Negative: {sum(1 for p in train_pairs if p['match_label'] == 0)}")
-    print(f"Val - Positive: {sum(1 for p in val_pairs if p['match_label'] == 1)}, "
-          f"Negative: {sum(1 for p in val_pairs if p['match_label'] == 0)}")
     
     return train_pairs, val_pairs
 
@@ -184,8 +174,6 @@ with open('train_pairs.json', 'w') as f:
 
 with open('val_pairs.json', 'w') as f:
     json.dump(val_pairs, f, indent=2)
-
-print("\n✓ Train and validation sets created with NO data leakage!")
 
 test_pairs = generate_image_pairs(
     dataset_path='data/test',
