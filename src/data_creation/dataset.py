@@ -72,3 +72,9 @@ class TLESSDataset(Dataset):
         match_label = torch.tensor(pair['match_label'], dtype=torch.float32)
 
         return ref_img, query_img, match_label, angle_diff
+    
+    def get_pos_count(self):
+        return sum(1 for pair in self.pairs if pair['match_label'] == 1)
+    
+    def get_neg_count(self):
+        return sum(1 for pair in self.pairs if pair['match_label'] == 0)
