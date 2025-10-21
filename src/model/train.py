@@ -15,10 +15,10 @@ from data.dataset import TLESSDataset
 def train_model(train_json='train_pairs.json', val_json='val_pairs.json', epochs=10, batch_size=16, lr=1e-4):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    model = SiameseCNN(pretrained=True, freeze_backbone=True).to(device)
+    model = SiameseCNN(pretrained=True, freeze_backbone=False).to(device)  # unfreeze for fine-tuning
 
-    train_dataset = TLESSDataset(train_json, crop_objects=True)
-    val_dataset = TLESSDataset(val_json, crop_objects=True)
+    train_dataset = TLESSDataset(train_json, crop_objects=True, augment=True)  # augmentation ON for training
+    val_dataset = TLESSDataset(val_json, crop_objects=True, augment=False)  # augmentation OFF for validation
 
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4,pin_memory=True, persistent_workers=True, prefetch_factor=2)
@@ -78,7 +78,7 @@ def train_model(train_json='train_pairs.json', val_json='val_pairs.json', epochs
 
             loss_sim = criterion_similarity(similarity, match_label)
             loss_angle = criterion_angle(pred_angle, angle_diff)
-            loss = loss_sim + 5.0 * loss_angle
+            loss = loss_sim + 3.0 * loss_angle  # reduced from 5.0 for better balance
 
             loss.backward()
             optimizer.step()
@@ -116,7 +116,7 @@ def train_model(train_json='train_pairs.json', val_json='val_pairs.json', epochs
 
                 loss_sim = criterion_similarity(similarity, match_label)
                 loss_angle = criterion_angle(pred_angle, angle_diff)
-                loss = loss_sim + 5.0 * loss_angle
+                loss = loss_sim + 3.0 * loss_angle  # reduced from 5.0 for better balance
 
                 val_loss += loss.item()
                 val_loss_sim_total += loss_sim.item()
