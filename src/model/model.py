@@ -6,7 +6,7 @@ class SiameseCNN(nn.Module):
     def __init__(self, pretrained=True, freeze_backbone=True):
         super(SiameseCNN, self).__init__()
 
-        resnet = models.resnet18(pretrained=pretrained) # we use ResNet18 as the backbone
+        resnet = models.resnet18(pretrained=pretrained) # we use the ResNet18 pre-trained model as the backbone
         self.backbone = nn.Sequential(*list(resnet.children())[:-1]) # we use all the layers from ResNet18 except the final fully connected layer - we only need the feature extractor
 
         if freeze_backbone:
@@ -15,17 +15,22 @@ class SiameseCNN(nn.Module):
 
         self.fc_similarity = nn.Sequential(
             nn.Linear(512 * 2, 256), # input size is 512*2 due to concatenation of two feature vectors
+            nn.ReLU(), # activation function
+            nn.Dropout(0.5), # increased dropout to prevent overfitting
+            nn.Linear(256, 128), # hidden layer
             nn.ReLU(),
-            nn.Dropout(0.3), 
-            nn.Linear(256, 1), 
-            nn.Sigmoid() # output between 0 and 1 for similarity score
+            nn.Dropout(0.5),
+            nn.Linear(128, 1) # output logits (no sigmoid - using BCEWithLogitsLoss)
         )
 
         self.fc_angle = nn.Sequential(
             nn.Linear(512 * 2, 256), # input size is 512*2 due to concatenation of two feature vectors
-            nn.ReLU(), 
-            nn.Dropout(0.3), # dropout to prevent overfitting
-            nn.Linear(256, 1), 
+            nn.ReLU(), # activation function
+            nn.Dropout(0.5), # increased dropout to prevent overfitting
+            nn.Linear(256, 128), # hidden layer
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(128, 1), # output layer
             nn.Tanh() # output between -1 and 1 for angle difference (normalized for more stable training)
         )
 
