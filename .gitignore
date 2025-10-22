@@ -34,7 +34,7 @@ checkpoints/
 
 # Data
 data/
-*.json
+# *.json
 *.pkl
 *.pickle
 
