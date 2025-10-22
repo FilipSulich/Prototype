@@ -158,28 +158,21 @@ def split_by_images(all_pairs, train_ratio=0.7, val_ratio=0.15, random_seed=42):
 
 
 if __name__ == "__main__":
-    print("\n=== Generating pairs from CLUTTERED scenes ===")
     cluttered_pairs = generate_image_pairs(
         dataset_path='data/train',
         same_object_only=True
     )
 
-    print("\n=== Generating pairs from CLEAN scenes ===")
     clean_pairs = generate_image_pairs(
         dataset_path='data/test',
         same_object_only=True
     )
-
-    print("\n=== Combining datasets ===")
     all_pairs = cluttered_pairs + clean_pairs
     print(f"Total pairs before balancing: {len(all_pairs)}")
     print(f"  From cluttered: {len(cluttered_pairs)}")
     print(f"  From clean: {len(clean_pairs)}")
 
-    print("\n=== Balancing combined dataset ===")
     balanced_pairs = balance_pairs(all_pairs, ratio=3)
-
-    print("\n=== Splitting into train/val/test ===")
     train_pairs, val_pairs, test_pairs = split_by_images(
         balanced_pairs,
         train_ratio=0.7,
@@ -196,8 +189,6 @@ if __name__ == "__main__":
     with open('json_data/test_pairs.json', 'w') as f:
         json.dump(test_pairs, f, indent=2)
 
-    print("\n=== Summary ===")
     print(f"Train pairs: {len(train_pairs)}")
     print(f"Val pairs: {len(val_pairs)}")
     print(f"Test pairs: {len(test_pairs)}")
-    print("\nFiles saved to json_data/")

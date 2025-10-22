@@ -1,5 +1,6 @@
 from ..data_creation.dataset import TLESSDataset
-
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -227,10 +228,14 @@ class SiameseCNN(nn.Module):
 
         return model
 
-    def load_model(self, checkpoint_path='checkpoints/best_checkpoint.pth'):
+    def load_model(self, checkpoint_path):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         checkpoint = torch.load(checkpoint_path, map_location=device)
-        self.load_state_dict(checkpoint['model_state_dict'])
+        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            self.load_state_dict(checkpoint['model_state_dict'])
+        else:
+            self.load_state_dict(checkpoint)
+
         self.to(device)
         self.eval()
         print(f"Model loaded from {checkpoint_path}")
@@ -247,6 +252,10 @@ class SiameseCNN(nn.Module):
         test_total = 0
         test_angle_errors = []
 
+        output_trues = []
+        output_preds = []
+
+
         model.eval()
         test_loader_tqdm = tqdm(test_loader, desc="Testing", leave=False)
         with torch.no_grad():
@@ -262,11 +271,28 @@ class SiameseCNN(nn.Module):
                 test_correct += (preds == match_label).sum().item()
                 test_total += match_label.size(0)
 
+                output_trues.extend(match_label.cpu().numpy())
+                output_preds.extend(torch.sigmoid(similarity).cpu().numpy())
+
                 angle_error = torch.abs(pred_angle - angle_diff) * 180.0
                 test_angle_errors.extend(angle_error.cpu().numpy())
 
         test_acc = 100.0 * test_correct / test_total
         test_angle_mae = sum(test_angle_errors) / len(test_angle_errors)
 
+        fpr, tpr, thresholds = roc_curve(output_trues, output_preds)
+        roc_auc = auc(fpr, tpr)
+
         print(f"Test Accuracy: {test_acc:.2f}%")
         print(f"Test Angle MAE: {float(test_angle_mae):.2f}°")
+        print(f"Test ROC AUC: {roc_auc:.2f}")
+        
+        plt.figure(figsize=(6, 6))
+        plt.plot(fpr, tpr, label=f"ROC Curve (AUC = {roc_auc:.3f})", linewidth=2)
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlabel("False Positive Rate")
+        plt.ylabel("True Positive Rate")
+        plt.title("ROC Curve for Siamese CNN")
+        plt.legend(loc="lower right")
+        plt.grid(True)
+        plt.show()
