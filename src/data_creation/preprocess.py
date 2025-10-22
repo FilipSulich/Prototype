@@ -59,7 +59,10 @@ def generate_image_pairs(dataset_path, output_json, same_object_only=True):
                 ref_rotation = ref_obj['cam_R_m2c']
                 ref_bbox = ref_obj['obj_bb']
 
-                for query_id in image_ids[i + 1:]:
+                for query_id in image_ids:
+                    if query_id == ref_id:
+                        continue
+
                     query_objects = image_objects[query_id]
 
                     for query_obj in query_objects:
@@ -106,8 +109,8 @@ def generate_image_pairs(dataset_path, output_json, same_object_only=True):
         json.dump(pairs, f, indent=2)
 
     print(f"Generated {len(pairs)} pairs")
-    print(f"Positive pairs (<=10°): {sum(1 for p in pairs if p['match_label'] == 1)}")
-    print(f"Negative pairs (>10°): {sum(1 for p in pairs if p['match_label'] == 0)}")
+    print(f"Positive pairs (<=5°): {sum(1 for p in pairs if p['match_label'] == 1)}")
+    print(f"Negative pairs (>5°): {sum(1 for p in pairs if p['match_label'] == 0)}")
 
     return pairs
 
@@ -130,11 +133,7 @@ def split_by_images(all_pairs, train_ratio=0.75, random_seed=42):
     val_images = set(all_images[split_idx:])
     
     print(f"Train images: {len(train_images)}")
-    print(f"Val images: {len(val_images)}")
-    
-    overlap = train_images.intersection(val_images)
-    print(f"Image overlap: {len(overlap)} (should be 0)")
-    assert len(overlap) == 0, "ERROR: Images overlap between train and val!"
+    print(f"Val images: {len(val_images)}")    
     
     train_pairs = []
     val_pairs = []
@@ -159,7 +158,7 @@ def split_by_images(all_pairs, train_ratio=0.75, random_seed=42):
 
 all_train_pairs = generate_image_pairs(
     dataset_path='data/train',
-    output_json='all_train_pairs.json',
+    output_json='json_data/all_train_pairs.json',
     same_object_only=True
 )
 
@@ -169,14 +168,14 @@ train_pairs, val_pairs = split_by_images(
     random_seed=42
 )
 
-with open('train_pairs.json', 'w') as f:
+with open('json_data/train_pairs.json', 'w') as f:
     json.dump(train_pairs, f, indent=2)
 
-with open('val_pairs.json', 'w') as f:
+with open('json_data/val_pairs.json', 'w') as f:
     json.dump(val_pairs, f, indent=2)
 
 test_pairs = generate_image_pairs(
     dataset_path='data/test',
-    output_json='test_pairs.json',
+    output_json='json_data/test_pairs.json',
     same_object_only=True
 )

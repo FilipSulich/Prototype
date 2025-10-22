@@ -5,6 +5,7 @@ def create_subset(input_json, output_json, num_samples):
     with open(input_json, 'r') as f:
         pairs = json.load(f)
 
+    print(len(pairs))
     if len(pairs) > num_samples:
         subset = random.sample(pairs, num_samples)
     else:
@@ -17,5 +18,5 @@ def create_subset(input_json, output_json, num_samples):
 
     print(f"Saved to {output_json}")
 
-create_subset('train_pairs.json', 'train_pairs_small2.json', num_samples=5000)
-create_subset('val_pairs.json', 'val_pairs_small2.json', num_samples=1000)
+create_subset('train_pairs.json', 'train_pairs_small2.json', num_samples=100000)
+create_subset('val_pairs.json', 'val_pairs_small2.json', num_samples=10000)

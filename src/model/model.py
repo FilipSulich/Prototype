@@ -63,13 +63,10 @@ class SiameseCNN(nn.Module):
     def train_model(self, train_json='train_pairs.json', val_json='val_pairs.json', epochs=10, batch_size=16, lr=1e-4):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        # model = SiameseCNN(pretrained=pretrained, freeze_backbone=freeze_backbone).to(device)  # unfreeze the ResNet18 weights for fine-tuning
-
         model = self.to(device)
 
         train_dataset = TLESSDataset(train_json, crop_objects=True, augment=True)  # the augmentation is turned on for training
         val_dataset = TLESSDataset(val_json, crop_objects=True, augment=False)  # its turned off for validating
-
 
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4,pin_memory=True, persistent_workers=True, prefetch_factor=2)
         val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4,pin_memory=True, persistent_workers=True, prefetch_factor=2) 
@@ -83,7 +80,7 @@ class SiameseCNN(nn.Module):
         criterion_angle = nn.SmoothL1Loss()
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3) # reduce the learning rate by 0.5 if validation loss doesnt improve for 3 epochs
 
         os.makedirs('checkpoints', exist_ok=True)
         best_val_loss = float('inf')
@@ -228,3 +225,47 @@ class SiameseCNN(nn.Module):
         print("training complete!")
 
         return model
+
+    def load_model(self, checkpoint_path='checkpoints/best_checkpoint.pth'):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        self.load_state_dict(checkpoint['model_state_dict'])
+        self.to(device)
+        self.eval()
+        print(f"Model loaded from {checkpoint_path}")
+        return self, device
+
+    def evaluate_model(self, checkpoint_path='checkpoints/best_checkpoint.pth', test_json='test_pairs.json', batch_size=16):
+        model, device = self.load_model(checkpoint_path)
+
+        test_dataset = TLESSDataset(test_json, crop_objects=True, augment=False) 
+
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4,pin_memory=True, persistent_workers=True, prefetch_factor=2) 
+        
+        test_correct = 0
+        test_total = 0
+        test_angle_errors = []
+
+        model.eval()
+        test_loader_tqdm = tqdm(test_loader, desc="Testing", leave=False)
+        with torch.no_grad():
+            for ref_img, query_img, match_label, angle_diff in test_loader_tqdm:
+                ref_img = ref_img.to(device)
+                query_img = query_img.to(device)
+                match_label = match_label.to(device).unsqueeze(1)
+                angle_diff = angle_diff.to(device).unsqueeze(1) / 180.0
+
+                similarity, pred_angle = model(ref_img, query_img)
+
+                preds = (torch.sigmoid(similarity) > 0.5).float()
+                test_correct += (preds == match_label).sum().item()
+                test_total += match_label.size(0)
+
+                angle_error = torch.abs(pred_angle - angle_diff) * 180.0
+                test_angle_errors.extend(angle_error.cpu().numpy())
+
+        test_acc = 100.0 * test_correct / test_total
+        test_angle_mae = sum(test_angle_errors) / len(test_angle_errors)
+
+        print(f"Test Accuracy: {test_acc:.2f}%")
+        print(f"Test Angle MAE: {float(test_angle_mae):.2f}°")
