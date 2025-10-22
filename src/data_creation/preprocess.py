@@ -114,7 +114,6 @@ def generate_image_pairs(dataset_path, output_json, same_object_only=True):
 
     return pairs
 
-
 def split_by_images(all_pairs, train_ratio=0.75, random_seed=42):
     np.random.seed(random_seed)
     
@@ -153,8 +152,6 @@ def split_by_images(all_pairs, train_ratio=0.75, random_seed=42):
     print(f"Discarded pairs: {len(all_pairs) - len(train_pairs) - len(val_pairs)}")
     
     return train_pairs, val_pairs
-
-
 
 all_train_pairs = generate_image_pairs(
     dataset_path='data/train',

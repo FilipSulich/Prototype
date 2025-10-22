@@ -36,7 +36,6 @@ class SiameseCNNInterface:
             return json.load(f)
 
     def draw_bbox(_self, image, bbox, color=(0, 255, 0), label=""):
-        """Draw a bounding box on the image."""
         img = image.copy()
         x, y, w, h = bbox
         cv2.rectangle(img, (x, y), (x + w, y + h), color, 3)
@@ -45,7 +44,6 @@ class SiameseCNNInterface:
         return img
 
     def preprocess_image(self, image_path, bbox):
-        """Load image, crop by bounding box, and preprocess for model."""
         transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -127,9 +125,9 @@ class SiameseCNNInterface:
             
             with torch.no_grad():
                 similarity, pred_angle = st.session_state.model(ref_tensor, query_tensor)
-            
-            pred_angle = pred_angle.item() * 180.0
-            similarity = similarity.item()
+
+            pred_angle = pred_angle.item() * 180.0 
+            similarity = torch.sigmoid(torch.tensor(similarity.item())).item()  
             
             angle_error = abs(pred_angle - pair['angle_difference'])
             pred_match = 1 if similarity > 0.5 else 0
@@ -204,10 +202,10 @@ class SiameseCNNInterface:
                         
                         with torch.no_grad():
                             similarity, pred_angle = st.session_state.model(ref_tensor, query_tensor)
-                        
-                        pred_angle = pred_angle.item() * 180.0
-                        similarity = similarity.item()
-                        
+
+                        pred_angle = pred_angle.item() * 180.0  # convert from normalized [-1,1] to degrees
+                        similarity = torch.sigmoid(torch.tensor(similarity.item())).item()  # apply sigmoid to get probability
+
                         angle_error = abs(pred_angle - pair['angle_difference'])
                         pred_match = 1 if similarity > 0.5 else 0
                         match_correct = (pred_match == pair['match_label'])

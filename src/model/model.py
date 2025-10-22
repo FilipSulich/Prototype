@@ -42,7 +42,7 @@ class SiameseCNN(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(128, 1), # output layer
-            nn.Tanh() # output between -1 and 1 for angle difference (normalized for more stable training)
+            nn.Tanh() # output between -1 and 1 for angle difference (normalized to [-1, 1])
         )
 
     def forward_once(self, x):
@@ -55,9 +55,9 @@ class SiameseCNN(nn.Module):
         feat2 = self.forward_once(img2) # feature vector from the second image (512 dimensions)
         combined = torch.cat([feat1, feat2], dim=1) # concatenation of the two vectors (512 *2 = 1024 dimensions)
 
-        similarity = self.fc_similarity(combined) # similarity score between 0 and 1
-        angle_diff = self.fc_angle(combined) * 180.0 # predicted angle difference (we scale it back to degrees)
-    
+        similarity = self.fc_similarity(combined) # similarity score logits (pre-sigmoid)
+        angle_diff = self.fc_angle(combined) # normalized angle difference in [-1, 1]
+
         return similarity, angle_diff
     
     def train_model(self, train_json='train_pairs.json', val_json='val_pairs.json', epochs=10, batch_size=16, lr=1e-4):
@@ -125,7 +125,7 @@ class SiameseCNN(nn.Module):
 
                 loss_sim = criterion_similarity(similarity, match_label)
                 loss_angle = criterion_angle(pred_angle, angle_diff)
-                loss = loss_sim + 3.0 * loss_angle  
+                loss = 0.2 * loss_sim + 10.0 * loss_angle 
 
                 loss.backward()
                 optimizer.step()
@@ -163,7 +163,7 @@ class SiameseCNN(nn.Module):
 
                     loss_sim = criterion_similarity(similarity, match_label)
                     loss_angle = criterion_angle(pred_angle, angle_diff)
-                    loss = loss_sim + 3.0 * loss_angle 
+                    loss = 0.2 * loss_sim + 10.0 * loss_angle 
 
                     val_loss += loss.item()
                     val_loss_sim_total += loss_sim.item()
