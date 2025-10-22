@@ -221,6 +221,7 @@ class SiameseCNN(nn.Module):
 
         with open('checkpoints/training_metrics.json', 'w') as f:
             json.dump(metrics_history, f, indent=2)
+            f.flush()
 
         print("training complete!")
 
