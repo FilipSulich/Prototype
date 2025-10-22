@@ -13,6 +13,6 @@ class Main:
 
 if __name__ == "__main__":
     main = Main()
-    # main.train()    
+    main.train()    
     
-    main.evaluate()
+    # main.evaluate()
