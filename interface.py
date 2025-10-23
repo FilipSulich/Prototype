@@ -71,8 +71,8 @@ class SiameseCNNInterface:
         with st.sidebar:
             st.header("Settings")
             
-            model_path = st.text_input("Model Path", value="checkpoints/best_checkpoint.pth")
-            test_json_path = st.text_input("Test JSON Path", value="test_pairs.json")
+            model_path = st.text_input("Model Path", value="checkpoints/final_model.pth")
+            test_json_path = st.text_input("Test JSON Path", value="json_data/test_pairs.json")
             
             if st.button("Load Model and Data"):
                 try:
@@ -80,7 +80,7 @@ class SiameseCNNInterface:
                     st.session_state.test_pairs = _self.load_test_data(test_json_path)
                     st.success(f"Model and {len(st.session_state.test_pairs)} test pairs loaded successfully.")
                 except Exception as e:
-                    st.error(f"Error loading model or data: {e}")
+                    st.error(f" {e}")
                     
         if 'model' not in st.session_state:
             st.warning("Please load the model and test data first.")

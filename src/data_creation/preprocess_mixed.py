@@ -6,30 +6,41 @@ import json
 import random
 
 def rotation_matrix_to_euler(R_flat):
-    R_matrix = np.array(R_flat).reshape(3, 3)
-    rotation = Rotation.from_matrix(R_matrix)
-    euler_angles = rotation.as_euler('xyz', degrees=True)
-    return euler_angles
+    """
+    Convert a flat rotation matrix (list of 9 elements) to Euler angles in degrees.
+    """
+    R_matrix = np.array(R_flat).reshape(3, 3) # rotation matrix
+    rotation = Rotation.from_matrix(R_matrix) # create rotation object
+    euler_angles = rotation.as_euler('xyz', degrees=True) # convert to Euler angles (degrees)
+    return euler_angles 
 
 def calculate_angle_difference(R1_flat, R2_flat):
-    R1 = np.array(R1_flat).reshape(3, 3)
-    R2 = np.array(R2_flat).reshape(3, 3)
-    R_relative = R2 @ R1.T
-    rotation = Rotation.from_matrix(R_relative)
-    angle = rotation.magnitude() * 180 / np.pi
+    """
+    Calculate the angle difference in degrees between two rotation matrices.
+    """
+    R1 = np.array(R1_flat).reshape(3, 3) # rotation matrix 1
+    R2 = np.array(R2_flat).reshape(3, 3) # rotation matrix 2
+    R_relative = R2 @ R1.T # relative rotation
+    rotation = Rotation.from_matrix(R_relative) # create rotation object
+    angle = rotation.magnitude() * 180 / np.pi # angle in degrees
     return angle
 
 def load_gt_data(gt_path):
+    """
+    Load ground truth data from a YAML file.
+    """
     with open(gt_path, 'r') as f:
         gt_data = yaml.safe_load(f)
     return gt_data
 
 def generate_image_pairs(dataset_path, same_object_only=True):
+    """
+    Generate image pairs from the TLESS dataset. One data entry is a pair of images with their corresponding bounding boxes, angle difference and match label.
+    """
     dataset_path = Path(dataset_path)
     pairs = []
 
     object_folders = sorted([f for f in dataset_path.iterdir() if f.is_dir() and f.name.isdigit()])
-    print(f"Processing {len(object_folders)} object folders from {dataset_path}")
 
     for obj_folder in object_folders:
         gt_path = obj_folder / 'gt.yml'

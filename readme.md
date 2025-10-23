@@ -22,7 +22,7 @@ python -m src.model.main
 ```
 Features:
 - Class imbalance handling with pos_weight - there was a big imbalance in the dataset regarding the positive and negative matches (less than 10 degree angular difference is a match)
-- Data augmentation for training - images are augmented with noise to improve the learning
+- Data augmentation for training - images are augmented with noise to improve learning
 - Early stopping  - if the model is not improving through 3 consecutive Epochs, the training stops
 - Learning rate scheduling - if improvement is small, the learning rate decreases. 
 
@@ -55,3 +55,5 @@ He, K., Zhang, X., Ren, S., & Sun, J. (2015). Deep residual learning for image r
 Hodaň, T., Haluza, P., Obdržálek, Š., Matas, J., Lourakis, M., & Zabulis, X. (2017). T-LESS: An RGB-D dataset for 6D pose estimation of texture-less objects. 2017 IEEE Winter Conference on Applications of Computer Vision (WACV), 880–888. IEEE. https://doi.org/10.1109/WACV.2017.103 
 
 Wang, C., Xu, D., Zhu, Y., Martín-Martín, R., Lu, C., Fei-Fei, L., & Savarese, S. (2019). DenseFusion: 6D object pose estimation by iterative dense fusion. In Proceedings of the IEEE/CVF Conference on  Computer Vision and Pattern Recognition (CVPR). http://arxiv.org/abs/1901.04780 
+
+In some parts of the code, Claude Code was used to help with debugging and refactoring.
