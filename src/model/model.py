@@ -283,7 +283,7 @@ class SiameseCNN(nn.Module):
         print(f"Test Accuracy: {test_acc:.2f}%")
         print(f"Test Angle MAE: {float(test_angle_mae):.2f}°")
 
-        self.make_plot(metrics_json='checkpoints/training_metrics.json', output_trues=output_trues, output_preds=output_preds)
+        self.make_plot(metrics_json='training_metrics/training_metrics.json', output_trues=output_trues, output_preds=output_preds)
 
     def make_plot(self, metrics_json='training_metrics/training_metrics.json', output_trues=None, output_preds=None):
         with open(metrics_json, 'r') as f:
@@ -296,7 +296,7 @@ class SiameseCNN(nn.Module):
         
         plt.figure(figsize=(16, 10))
 
-        plt.subplot(3, 1, 1)
+        plt.subplot(2, 2, 1)
         plt.plot(epochs, metrics['train_loss'], label='Train Loss')
         plt.plot(epochs, metrics['val_loss'], label='Val Loss')
         plt.xlabel('Epochs')
@@ -305,7 +305,7 @@ class SiameseCNN(nn.Module):
         plt.legend()
         plt.grid()
 
-        plt.subplot(3, 1, 2)
+        plt.subplot(2, 2, 2)
         plt.plot(epochs, metrics['train_accuracy'], label='Train Accuracy')
         plt.plot(epochs, metrics['val_accuracy'], label='Val Accuracy')
         plt.xlabel('Epochs')
@@ -313,15 +313,24 @@ class SiameseCNN(nn.Module):
         plt.title('Training and Validation Accuracy')
         plt.legend()
         plt.grid()
+        
+        plt.subplot(2, 2, 3)
+        plt.plot(epochs, metrics['train_angle_mae'], label='Train Angle MAE')
+        plt.plot(epochs, metrics['val_angle_mae'], label='Val Angle MAE')
+        plt.xlabel('Epochs')
+        plt.ylabel('Angle MAE (degrees)')
+        plt.title('Training and Validation Angle MAE')
+        plt.legend()
+        plt.grid()
 
-        plt.subplot(3, 1, 3)
+        plt.subplot(2, 2, 4)
         plt.plot(fpr, tpr, label=f"ROC Curve (AUC = {roc_auc:.3f})", linewidth=2)
         plt.plot([0, 1], [0, 1], 'k--')
         plt.xlabel("False Positive Rate")
         plt.ylabel("True Positive Rate")
         plt.title("ROC Curve")
-        plt.legend(loc="lower right")
-        plt.grid(True)
+        plt.legend()
+        plt.grid()
 
         plt.tight_layout()
         plt.show()
