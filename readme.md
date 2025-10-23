@@ -20,6 +20,11 @@ To train the model, go the the [`main.py`](src/model/main.py) class and make sur
 ```bash
 python -m src.model.main
 ```
+Features:
+- Class imbalance handling with pos_weight - there was a big imbalance in the dataset regarding the positive and negative matches (less than 10 degree angular difference is a match)
+- Data augmentation for training - images are augmented with noise to improve the learning
+- Early stopping  - if the model is not improving through 3 consecutive Epochs, the training stops
+- Learning rate scheduling - if improvement is small, the learning rate decreases. 
 
 ## Graphical User Interface
 To open a visual interface, run the following terminal command
@@ -27,11 +32,7 @@ To open a visual interface, run the following terminal command
 streamlit run interface.py
 ```
 
-Features:
-- Class imbalance handling with pos_weight
-- Data augmentation for training
-- Early stopping with patience=7
-- Learning rate scheduling
+
 
 ## Evaluation
 
@@ -43,9 +44,9 @@ Generates plots for:
 
 ## Limitations & Future Work
 
-**Current limitation**: The model predicts only rotation magnitude (scalar), which loses directional information about 3D rotations. This makes it impossible to distinguish between different types of rotations (e.g., 45 degree roll vs 45 degree pitch).
+**Current limitation**: The model predicts only rotation magnitude (scalar), which loses directional information about 3D rotations. This makes it impossible to distinguish between different types of rotations (e.g., 45 degree roll vs. 45 degree pitch).
 
-**Chosen solution for next phases**: Implement a full 6DoF pose estimation model - DenseFusion (Wang et al., 2019), which predicts complete object's pose with rotation and translation.
+**Chosen solution for next phases**: Implement a full 6DoF pose estimation model - DenseFusion (Wang et al., 2019), which predicts the complete pose of an object with rotation and translation.
 
 
 ## References
