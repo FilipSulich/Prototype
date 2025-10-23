@@ -81,10 +81,7 @@ class SiameseCNNInterface:
                     st.success(f"Model and {len(st.session_state.test_pairs)} test pairs loaded successfully.")
                 except Exception as e:
                     st.error(f"Error loading model or data: {e}")
-            
-            st.markdown("---")
-            st.markdown("Navigation")
-        
+                    
         if 'model' not in st.session_state:
             st.warning("Please load the model and test data first.")
             return
@@ -167,19 +164,7 @@ class SiameseCNNInterface:
                     st.write(f"- Predicted Angle: {pred_angle:.2f}°")
                     st.write(f"- Similarity: {similarity:.3f}")
                     st.write(f"- Predicted Match: {pred_match}")
-                
-                st.markdown("**Error Analysis:**")
-                if angle_error < 10:
-                    st.success(f"Angle error: {angle_error:.2f}° (Good)")
-                elif angle_error < 20:
-                    st.warning(f"Angle error: {angle_error:.2f}° (Fair)")
-                else:
-                    st.error(f"Angle error: {angle_error:.2f}° (Poor)")
-                
-                if match_correct:
-                    st.success("Match prediction is correct.")
-                else:
-                    st.error("Match prediction is incorrect.")
+
         
         with tab2:
             st.header("Batch Evaluation")
@@ -203,8 +188,8 @@ class SiameseCNNInterface:
                         with torch.no_grad():
                             similarity, pred_angle = st.session_state.model(ref_tensor, query_tensor)
 
-                        pred_angle = pred_angle.item() * 180.0  # convert from normalized [-1,1] to degrees
-                        similarity = torch.sigmoid(torch.tensor(similarity.item())).item()  # apply sigmoid to get probability
+                        pred_angle = pred_angle.item() * 180.0  
+                        similarity = torch.sigmoid(torch.tensor(similarity.item())).item()  
 
                         angle_error = abs(pred_angle - pair['angle_difference'])
                         pred_match = 1 if similarity > 0.5 else 0

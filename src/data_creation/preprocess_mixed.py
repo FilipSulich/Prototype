@@ -156,7 +156,6 @@ def split_by_images(all_pairs, train_ratio=0.7, val_ratio=0.15, random_seed=42):
 
     return train_pairs, val_pairs, test_pairs
 
-
 if __name__ == "__main__":
     cluttered_pairs = generate_image_pairs(
         dataset_path='data/train',

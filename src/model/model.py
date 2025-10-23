@@ -280,19 +280,48 @@ class SiameseCNN(nn.Module):
         test_acc = 100.0 * test_correct / test_total
         test_angle_mae = sum(test_angle_errors) / len(test_angle_errors)
 
-        fpr, tpr, thresholds = roc_curve(output_trues, output_preds)
-        roc_auc = auc(fpr, tpr)
-
         print(f"Test Accuracy: {test_acc:.2f}%")
         print(f"Test Angle MAE: {float(test_angle_mae):.2f}°")
-        print(f"Test ROC AUC: {roc_auc:.2f}")
+
+        self.make_plot(metrics_json='checkpoints/training_metrics.json', output_trues=output_trues, output_preds=output_preds)
+
+    def make_plot(self, metrics_json='training_metrics/training_metrics.json', output_trues=None, output_preds=None):
+        with open(metrics_json, 'r') as f:
+            metrics = json.load(f)
+
+        epochs = range(1, len(metrics['train_loss']) + 1)
+
+        fpr, tpr, _ = roc_curve(output_trues, output_preds)
+        roc_auc = auc(fpr, tpr)
         
-        plt.figure(figsize=(6, 6))
+        plt.figure(figsize=(16, 10))
+
+        plt.subplot(3, 1, 1)
+        plt.plot(epochs, metrics['train_loss'], label='Train Loss')
+        plt.plot(epochs, metrics['val_loss'], label='Val Loss')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.title('Training and Validation Loss')
+        plt.legend()
+        plt.grid()
+
+        plt.subplot(3, 1, 2)
+        plt.plot(epochs, metrics['train_accuracy'], label='Train Accuracy')
+        plt.plot(epochs, metrics['val_accuracy'], label='Val Accuracy')
+        plt.xlabel('Epochs')
+        plt.ylabel('Accuracy (%)')
+        plt.title('Training and Validation Accuracy')
+        plt.legend()
+        plt.grid()
+
+        plt.subplot(3, 1, 3)
         plt.plot(fpr, tpr, label=f"ROC Curve (AUC = {roc_auc:.3f})", linewidth=2)
         plt.plot([0, 1], [0, 1], 'k--')
         plt.xlabel("False Positive Rate")
         plt.ylabel("True Positive Rate")
-        plt.title("ROC Curve for Siamese CNN")
+        plt.title("ROC Curve")
         plt.legend(loc="lower right")
         plt.grid(True)
+
+        plt.tight_layout()
         plt.show()
