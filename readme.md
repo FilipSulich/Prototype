@@ -4,13 +4,13 @@ A Siamese CNN prototype for matching objects across different viewpoints using t
 
 ## Architecture
 
-- **Backbone**: ResNet18 (pre-trained, frozen)
+- **Backbone**: ResNet18 (pre-trained, frozen) (He et al., 2015)
 - **Task**: Binary classification (match/no-match) + rotation magnitude prediction
 - **Input**: RGB image pairs with object bounding boxes
 
 ## Dataset
 
-Uses T-LESS dataset with:
+Uses T-LESS dataset (Hodaň et al., 2017) with:
 - `cam_R_m2c`: 3x3 rotation matrices (model-to-camera)
 - `cam_t_m2c`: 3D translation vectors
 - Currently extracts rotation magnitude (single scalar) from full rotation matrices
@@ -45,4 +45,12 @@ Generates plots for:
 
 **Current limitation**: The model predicts only rotation magnitude (scalar), which loses directional information about 3D rotations. This makes it impossible to distinguish between different types of rotations (e.g., 45 degree roll vs 45 degree pitch).
 
-**Chosen solution for next phases**: Implement a full 6DoF pose estimation model - DenseFusion, which predict complete pose with rotation and translation.
+**Chosen solution for next phases**: Implement a full 6DoF pose estimation model - DenseFusion (Wang et al., 2019), which predicts complete object's pose with rotation and translation.
+
+
+## References
+He, K., Zhang, X., Ren, S., & Sun, J. (2015). Deep residual learning for image recognition. arXiv. arXiv:1512.03385. https://doi.org/10.48550/arXiv.1512.03385 
+
+Hodaň, T., Haluza, P., Obdržálek, Š., Matas, J., Lourakis, M., & Zabulis, X. (2017). T-LESS: An RGB-D dataset for 6D pose estimation of texture-less objects. 2017 IEEE Winter Conference on Applications of Computer Vision (WACV), 880–888. IEEE. https://doi.org/10.1109/WACV.2017.103 
+
+Wang, C., Xu, D., Zhu, Y., Martín-Martín, R., Lu, C., Fei-Fei, L., & Savarese, S. (2019). DenseFusion: 6D object pose estimation by iterative dense fusion. In Proceedings of the IEEE/CVF Conference on  Computer Vision and Pattern Recognition (CVPR). http://arxiv.org/abs/1901.04780 
