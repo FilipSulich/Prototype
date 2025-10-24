@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import random
 
+
 def rotation_matrix_to_euler(R_flat):
     """
     Convert a flat rotation matrix (list of 9 elements) to Euler angles in degrees.
@@ -40,13 +41,13 @@ def generate_image_pairs(dataset_path, same_object_only=True):
     dataset_path = Path(dataset_path)
     pairs = []
 
-    object_folders = sorted([f for f in dataset_path.iterdir() if f.is_dir() and f.name.isdigit()])
+    object_folders = sorted([f for f in dataset_path.iterdir() if f.is_dir() and f.name.isdigit()]) # object folders
 
     for obj_folder in object_folders:
-        gt_path = obj_folder / 'gt.yml'
-        rgb_dir = obj_folder / 'rgb'
+        gt_path = obj_folder / 'gt.yml' # ground truth file
+        rgb_dir = obj_folder / 'rgb' # RGB images directory
 
-        if not gt_path.exists():
+        if not gt_path.exists(): 
             continue
 
         gt_data = load_gt_data(gt_path)
@@ -58,35 +59,35 @@ def generate_image_pairs(dataset_path, same_object_only=True):
             for obj in objects:
                 if img_id not in image_objects:
                     image_objects[img_id] = []
-                image_objects[img_id].append(obj)
+                image_objects[img_id].append(obj)   # group objects by image ID
 
-        image_ids = sorted(image_objects.keys())
+        image_ids = sorted(image_objects.keys()) 
 
         for i, ref_id in enumerate(image_ids):
-            ref_objects = image_objects[ref_id]
+            ref_objects = image_objects[ref_id] 
 
             for ref_obj in ref_objects:
-                ref_obj_id = ref_obj['obj_id']
-                ref_rotation = ref_obj['cam_R_m2c']
-                ref_bbox = ref_obj['obj_bb']
+                ref_obj_id = ref_obj['obj_id'] # reference object ID
+                ref_rotation = ref_obj['cam_R_m2c'] # reference rotation matrix
+                ref_bbox = ref_obj['obj_bb'] # reference bounding box
 
                 for query_id in image_ids:
-                    if query_id == ref_id:
+                    if query_id == ref_id: # skip same image
                         continue
 
-                    query_objects = image_objects[query_id]
+                    query_objects = image_objects[query_id] # query objects
 
-                    for query_obj in query_objects:
-                        query_obj_id = query_obj['obj_id']
+                    for query_obj in query_objects: # for each referece object, find all query objects
+                        query_obj_id = query_obj['obj_id'] # query object ID
 
-                        if same_object_only and ref_obj_id != query_obj_id:
+                        if same_object_only and ref_obj_id != query_obj_id: # skip if not the same object
                             continue
 
-                        query_rotation = query_obj['cam_R_m2c']
-                        query_bbox = query_obj['obj_bb']
+                        query_rotation = query_obj['cam_R_m2c'] # query rotation matrix
+                        query_bbox = query_obj['obj_bb'] # query bounding box
 
-                        angle_diff = calculate_angle_difference(ref_rotation, query_rotation)
-                        match_label = 1 if angle_diff <= 10.0 else 0
+                        angle_diff = calculate_angle_difference(ref_rotation, query_rotation) # angle difference
+                        match_label = 1 if angle_diff <= 10.0 else 0 # match label based on angle difference
 
                         pair = {
                             'reference_image': str(rgb_dir / f'{ref_id:04d}.png'),
@@ -104,14 +105,14 @@ def generate_image_pairs(dataset_path, same_object_only=True):
 
 def balance_pairs(pairs, ratio=3):
     """Balance positive and negative pairs"""
-    pos_pairs = [p for p in pairs if p['match_label'] == 1]
-    neg_pairs = [p for p in pairs if p['match_label'] == 0]
+    pos_pairs = [p for p in pairs if p['match_label'] == 1] # positive pairs - angle difference <= 10 degrees
+    neg_pairs = [p for p in pairs if p['match_label'] == 0] # negative pairs - angle difference > 10 degrees
 
-    max_neg = min(len(neg_pairs), ratio * len(pos_pairs))
-    neg_pairs = random.sample(neg_pairs, max_neg)
-
-    balanced_pairs = pos_pairs + neg_pairs
-    random.shuffle(balanced_pairs)
+    max_neg = min(len(neg_pairs), ratio * len(pos_pairs)) # limit negative pairs to ratio times positive pairs
+    neg_pairs = random.sample(neg_pairs, max_neg) # sample negative pairs (based on max_neg)
+ 
+    balanced_pairs = pos_pairs + neg_pairs 
+    random.shuffle(balanced_pairs) # shuffle the balanced pairs
 
     print(f"  Positive pairs: {len(pos_pairs)}")
     print(f"  Negative pairs: {len(neg_pairs)}")
@@ -124,21 +125,21 @@ def split_by_images(all_pairs, train_ratio=0.7, val_ratio=0.15, random_seed=42):
     np.random.seed(random_seed)
 
     all_images = set()
-    for pair in all_pairs:
-        all_images.add(pair['reference_image'])
-        all_images.add(pair['query_image'])
+    for pair in all_pairs: # collect all unique images
+        all_images.add(pair['reference_image']) # reference images
+        all_images.add(pair['query_image']) # query images
 
-    all_images = list(all_images)
+    all_images = list(all_images) # convert to list
     print(f"\nTotal unique images: {len(all_images)}")
 
     np.random.shuffle(all_images)
 
-    train_split = int(train_ratio * len(all_images))
-    val_split = int((train_ratio + val_ratio) * len(all_images))
+    train_split = int(train_ratio * len(all_images)) # trainining split index
+    val_split = int((train_ratio + val_ratio) * len(all_images)) # validation split index
 
-    train_images = set(all_images[:train_split])
-    val_images = set(all_images[train_split:val_split])
-    test_images = set(all_images[val_split:])
+    train_images = set(all_images[:train_split]) # training images
+    val_images = set(all_images[train_split:val_split]) # validation images
+    test_images = set(all_images[val_split:]) # test images
 
     print(f"Train images: {len(train_images)}")
     print(f"Val images: {len(val_images)}")
@@ -149,15 +150,15 @@ def split_by_images(all_pairs, train_ratio=0.7, val_ratio=0.15, random_seed=42):
     test_pairs = []
 
     for pair in all_pairs:
-        ref_img = pair['reference_image']
-        query_img = pair['query_image']
+        ref_img = pair['reference_image'] # reference image
+        query_img = pair['query_image'] # query image
 
         if ref_img in train_images and query_img in train_images:
-            train_pairs.append(pair)
+            train_pairs.append(pair) # if both images in training set, add them to training pairs
         elif ref_img in val_images and query_img in val_images:
-            val_pairs.append(pair)
+            val_pairs.append(pair) # if both images in validation set, add them to validation pairs
         elif ref_img in test_images and query_img in test_images:
-            test_pairs.append(pair)
+            test_pairs.append(pair) # if both images in test set, add them to test pairs
 
     print(f"\nAfter filtering:")
     print(f"Train pairs: {len(train_pairs)}")
