@@ -34,9 +34,17 @@ checkpoints/
 
 # Data
 data/
+*.csv
 *.json
 *.pkl
 *.pickle
+
+# Isolation Forest data
+IsolationForest/data/
+IsolationForest/labels/*.json
+
+# SiameseCNN data
+SiameseCNN/json_data/
 
 # Jupyter Notebook
 .ipynb_checkpoints
