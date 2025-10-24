@@ -15,8 +15,8 @@ Uses T-LESS dataset (Hodaň et al., 2017) with:
 - `cam_t_m2c`: 3D translation vectors
 - Currently extracts rotation magnitude (single scalar) from full rotation matrices
 
-## Training
-To train the model, go the the [`main.py`](SiameseCNN/src/model/main.py) class and make sure the `model.train()` line is uncommented. Next, run the following terminal command, which will begin the training process. If desired, training hyperparameters can be modified.
+## Testing
+To test the model, go the the [`main.py`](src/model/main.py) class and make sure the `model.evaluate()` line is uncommented. Next, run the following terminal command, which will begin the training process. 
 ```bash
 python -m SiameseCNN.src.model.main
 ```
