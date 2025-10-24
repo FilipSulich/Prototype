@@ -4,7 +4,7 @@ A baseline implementation of Isolation Forest algorithm for anomaly detection on
 
 ## Purpose
 
-This implementation serves as a **baseline model** to establish a performance model before implementing more a sophisticated deep learning approache - the LSTM Autoencoder.
+This implementation serves as a **baseline model** to establish a performance model before implementing a more sophisticated deep learning approach - the LSTM Autoencoder.
 
 ## Algorithm
 

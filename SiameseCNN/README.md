@@ -16,7 +16,7 @@ Uses T-LESS dataset (Hodaň et al., 2017) with:
 - Currently extracts rotation magnitude (single scalar) from full rotation matrices
 
 ## Testing
-To test the model, go the the [`main.py`](src/model/main.py) class and make sure the `model.evaluate()` line is uncommented. Next, run the following terminal command, which will begin the training process. 
+To test the model, go the the [`main.py`](src/model/main.py) class and make sure the `model.evaluate()` line is uncommented. Next, run the following terminal command, which will begin the evaluation process. 
 ```bash
 python -m SiameseCNN.src.model.main
 ```
