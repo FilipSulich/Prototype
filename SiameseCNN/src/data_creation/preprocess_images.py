@@ -121,7 +121,7 @@ def balance_pairs(pairs, ratio=3):
     return balanced_pairs
 
 def split_by_images(all_pairs, train_ratio=0.7, val_ratio=0.15, random_seed=42):
-    """Split into train/val/test ensuring no image overlap"""
+    """Split into train/val/test sets ensuring no image overlap"""
     np.random.seed(random_seed)
 
     all_images = set()
@@ -160,44 +160,40 @@ def split_by_images(all_pairs, train_ratio=0.7, val_ratio=0.15, random_seed=42):
         elif ref_img in test_images and query_img in test_images:
             test_pairs.append(pair) # if both images in test set, add them to test pairs
 
-    print(f"\nAfter filtering:")
-    print(f"Train pairs: {len(train_pairs)}")
-    print(f"Val pairs: {len(val_pairs)}")
-    print(f"Test pairs: {len(test_pairs)}")
-    print(f"Discarded pairs: {len(all_pairs) - len(train_pairs) - len(val_pairs) - len(test_pairs)}")
-
     return train_pairs, val_pairs, test_pairs
 
 if __name__ == "__main__":
+    # first we generate all image pairs from scenes with multiple objects
     cluttered_pairs = generate_image_pairs(
         dataset_path='data/train',
         same_object_only=True
     )
 
+    # now generate pairs from clean images (with singular objects)
     clean_pairs = generate_image_pairs(
         dataset_path='data/test',
         same_object_only=True
     )
-    all_pairs = cluttered_pairs + clean_pairs
-    print(f"Total pairs before balancing: {len(all_pairs)}")
-    print(f"  From cluttered: {len(cluttered_pairs)}")
-    print(f"  From clean: {len(clean_pairs)}")
 
-    balanced_pairs = balance_pairs(all_pairs, ratio=3)
-    train_pairs, val_pairs, test_pairs = split_by_images(
+    all_pairs = cluttered_pairs + clean_pairs
+    
+    balanced_pairs = balance_pairs(all_pairs, ratio=3) # to fix the class imbalance issue, we balance the dataset by limiting the number of negative pairs to max 3 times the number of positive pairs
+    
+    train_pairs, val_pairs, test_pairs = split_by_images( # split into train/val/test sets
         balanced_pairs,
         train_ratio=0.7,
         val_ratio=0.15,
         random_seed=42
     )
 
-    with open('json_data/train_pairs.json', 'w') as f:
+    # save to json files
+    with open('SiameseCNN/json_data/train_pairs.json', 'w') as f:
         json.dump(train_pairs, f, indent=2)
 
-    with open('json_data/val_pairs.json', 'w') as f:
+    with open('SiameseCNN/json_data/val_pairs.json', 'w') as f:
         json.dump(val_pairs, f, indent=2)
 
-    with open('json_data/test_pairs.json', 'w') as f:
+    with open('SiameseCNN/json_data/test_pairs.json', 'w') as f:
         json.dump(test_pairs, f, indent=2)
 
     print(f"Train pairs: {len(train_pairs)}")

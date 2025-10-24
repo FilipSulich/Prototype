@@ -236,7 +236,7 @@ class SiameseCNN(nn.Module):
 
         torch.save(model.state_dict(), 'SiameseCNN/checkpoints/final_model.pth') # save the final model
 
-        with open('checkpoints/training_metrics.json', 'w') as f:
+        with open('SiameseCNN/checkpoints/training_metrics.json', 'w') as f:
             json.dump(metrics_history, f, indent=2) # save training metrics to a json file for plotting
             f.flush()
 
