@@ -4,7 +4,7 @@ A baseline implementation of Isolation Forest algorithm for anomaly detection on
 
 ## Purpose
 
-This implementation serves as a **baseline model** to establish a performance model before implementing more sophisticated deep learning approaches - LSTM Autoencoder. The results demonstrate why traditional methods struggle with temporal anomaly detection.
+This implementation serves as a **baseline model** to establish a performance model before implementing more a sophisticated deep learning approache - the LSTM Autoencoder.
 
 ## Algorithm
 
@@ -27,7 +27,7 @@ python -m IsolationForest.main
 ```
 
 The script will:
-- Grid search over different n_estimators and random_state values
+- Grid search over different n_estimators (forest sizes) and random_state values
 - Train on all datasets in the NAB dataset
 - Output the performance metrics aggregated across all datasets
 
@@ -62,13 +62,7 @@ The script will:
 
 ## Future Work
 
-This baseline will be replaced by an LSTM Autoencoder model, which is expected to show significant improvements because:
-- It learns temporal patterns and sequences naturally
-- Reconstruction error captures "unexpected" deviations in time-series
-- Works well with single-feature time-series data
-- Doesn't require pre-specified contamination rates
-
-The current Isolation Forest results provide a reference point for "what doesn't work" and will make the LSTM performance gains more evident.
+This baseline will be replaced by an LSTM Autoencoder model, which is expected to show significant improvements. The current Isolation Forest results provide a reference point for "what doesn't work" and will make the LSTM performance gains more evident.
 
 ## References
 

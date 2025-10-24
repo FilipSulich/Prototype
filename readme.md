@@ -1,11 +1,11 @@
 # Computer Vision and Anomaly Detection Prototype
 
-This repository contains two machine learning models for different tasks: object pose matching using RGB images and time-series anomaly detection.
+This repository contains two deep learning models for different tasks: object pose matching using RGB images and time-series anomaly detection.
 
 ## Project Structure
 
 ### [SiameseCNN](./SiameseCNN)
-Siamese Convolutional Neural Network for estimation of angular difference between objects on two images, trained on the T-LESS dataset.
+Siamese Convolutional Neural Network for estimation of angular difference between objects on two images, trained on the [T-LESS dataset](https://github.com/thodan/t-less_toolkit/tree/master).
 
 **Key Features:**
 - ResNet18-based architecture for RGB image pair matching
@@ -42,11 +42,11 @@ python -m IsolationForest.main
 
 ## Dependencies
 
-Each project has its own requirements. Install dependencies as needed:
+Install project dependencies as needed:
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Development Notes
 
-In some parts of the code, Claude Code was used to help with debugging, refactoring, and implementation.
+In some parts of the code, Claude Code was used to help with debugging and refactoring.
