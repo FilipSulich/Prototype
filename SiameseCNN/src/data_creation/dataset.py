@@ -82,7 +82,7 @@ class TLESSDataset(Dataset):
         return ref_img, query_img, match_label, angle_diff
     
     def get_pos_count(self): 
-        """
+        """ 
         Get the number of positive pairs (match) in the dataset.
         """
         return sum(1 for pair in self.pairs if pair['match_label'] == 1) 

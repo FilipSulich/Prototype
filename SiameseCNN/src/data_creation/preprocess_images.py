@@ -165,13 +165,13 @@ def split_by_images(all_pairs, train_ratio=0.7, val_ratio=0.15, random_seed=42):
 if __name__ == "__main__":
     # first we generate all image pairs from scenes with multiple objects
     cluttered_pairs = generate_image_pairs(
-        dataset_path='data/train',
+        dataset_path='SiameseCNN/data/train',
         same_object_only=True
     )
 
     # now generate pairs from clean images (with singular objects)
     clean_pairs = generate_image_pairs(
-        dataset_path='data/test',
+        dataset_path='SiameseCNN/data/test',
         same_object_only=True
     )
 
